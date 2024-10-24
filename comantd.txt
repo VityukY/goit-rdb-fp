@@ -1,0 +1,58 @@
+### TASK 2
+
+table diseasecases (code, year primary keys), foregin key named fk_country - diseasecases>code to country>country_code -
+table country colums country_code, country_name 
+
+### TASK3
+create temporary table rabies as select entity, year, number_rabies from cases where number_rabies !='';
+alter table rabies modify column number_rabies float;
+SELECT 
+    entity,
+    AVG(Number_rabies) AS average_rabies,
+    MIN(Number_rabies) AS min_rabies,
+    MAX(Number_rabies) AS max_rabies,
+    SUM(Number_rabies) AS total_rabies
+FROM 
+    rabies
+GROUP BY 
+    entity 
+ORDER BY 
+    average_rabies DESC
+LIMIT 10;  
+
+###TASK 4
+use pandemic;
+ALTER TABLE cases ADD COLUMN year_date DATE DEFAULT NULL;
+UPDATE cases SET year_date = MAKEDATE(year, 1);
+ALTER TABLE cases ADD COLUMN date_now DATE DEFAULT NULL;
+UPDATE cases SET date_now = CURDATE();
+ALTER TABLE cases ADD COLUMN year_difference int DEFAULT NULL;
+UPDATE cases SET year_difference = TIMESTAMPDIFF(YEAR, year_date, date_now);
+select * from cases;
+
+
+### TASK 5
+
+DELIMITER //
+
+CREATE FUNCTION calculate_year_difference(year INT) 
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE year_date DATE;
+    DECLARE date_now DATE;
+
+    SET year_date = MAKEDATE(year, 1); 
+    SET date_now = CURDATE();
+
+    RETURN TIMESTAMPDIFF(YEAR, year_date, date_now); 
+END;
+
+//
+
+DELIMITER ;
+
+ALTER TABLE cases ADD COLUMN year_difference_function INT DEFAULT NULL;
+UPDATE cases SET year_difference_function = calculate_year_difference(year);
+
+select * from cases;
